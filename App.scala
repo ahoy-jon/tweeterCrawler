@@ -25,7 +25,7 @@ object MyApp extends App {
   import TweeterToRdf._
 
 
-  def printTime(s: String = "") : Unit = println((new util.Date()) +":" +s)
+  def printTime(s: String = "") : Unit = println((new java.util.Date()) +":" +s)
 
   def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit) {
     val p = new java.io.PrintWriter(f)
@@ -79,7 +79,7 @@ object MyApp extends App {
 
   printTime("union")
 
-   val uniongraph = listg.fold(diesel.ops.emptyGraph)(diesel.ops.union _)
+   val uniongraph = diesel.ops.union(listg)
 
 
   printTime("put into the store")
