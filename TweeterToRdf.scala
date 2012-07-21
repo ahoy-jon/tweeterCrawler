@@ -12,12 +12,30 @@ class TweeterToRdf[Rdf <: RDF](implicit diesel: Diesel[Rdf]) extends (Status => 
 
   def twitterUri(s:Status): Rdf#URI = twitterUri(s.getUser.getScreenName,s.getId)
 
+  def userToGraph(user: User): List[Rdf#Graph] = {
+
+    def graphFromField(field:String,predicate:Rdf#URI): Option[Rdf#Graph] = {
+      cleanApiOutput(field).map(f => (userUri(user) -- predicate ->- f).graph)
+    }
+
+    List(user.getDescription -> twt.description,
+      user.getName -> foaf.name,
+      user.getScreenName -> twt.username).flatMap(t => graphFromField(t._1, t._2).toList)
+  }
+
+  def cleanApiOutput[A](in: A): Option[A] = (in match {
+    case in:Long => Option(in).filter(_ != -1)
+    case in:String => Option(in).filter(_ != "")
+    case _ => None
+  }).map(_.asInstanceOf[A])
+
+
   def userUri(u: User): Rdf#URI = userUri(u.getScreenName)
   def userUri(screenName: String): Rdf#URI =  uri("https://twitter.com/"+screenName)
 
   def twitterUri(screenName: String,  id:Long): Rdf#URI = uri("https://twitter.com/" + screenName + "/status/" + id)
 
-  def cleanApiOutput(id: Long): Option[Long] = Option(id).filter(_ != -1)
+
 
 
   def entityToList(e: EntitySupport, entityUri: Rdf#URI): List[Rdf#Graph]   = {
@@ -35,6 +53,8 @@ class TweeterToRdf[Rdf <: RDF](implicit diesel: Diesel[Rdf]) extends (Status => 
         -- sioc.creator_of ->- userUri(s.getUser)
         -- sioc.last_activity_date ->- new DateTime(s.getCreatedAt)
         ).graph),
+
+      userToGraph(s.getUser),
 
       entityToList(s, twitterUri(s)),
 
@@ -67,6 +87,8 @@ class TwitterPrefix[Rdf <: RDF](ops : RDFOperations[Rdf]) extends PrefixBuilder(
   val retweet_of = apply("retweet_of")
   val mention    = apply("mention")
   val has_media  = apply("has_media")
+  val description = apply("description")
+  val username = apply("username")
 }
 
 object SIOCPrefix {

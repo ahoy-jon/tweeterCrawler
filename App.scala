@@ -84,7 +84,7 @@ object MyApp extends App {
 
   printTime("put into the store")
 
-  twitterRdfStore.appendToTwitter(listf)
+  twitterRdfStore.appendToTwitter(uniongraph)
 
   // g.map(g => twitterRdfStore.appendToTwitter(g))
 
