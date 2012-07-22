@@ -43,19 +43,13 @@ object MyApp extends App {
   val tdbDataset =  TDBFactory.createDataset("tdb")
   val jenas = JenaStore(tdbDataset)
 
-
   val twitterRdfStore = new TwitterRdfStore[Jena](jenas)
-
 
   import twitterRdfStore.diesel._
 
-
   val tf = new TwitterFactory(confb.build())
 
-
   val twitter = tf.getInstance()
-
-
 
   val a = (1 to 2).flatMap(i => {
     val page = new Paging(i, 200)
@@ -88,9 +82,7 @@ object MyApp extends App {
 
   // g.map(g => twitterRdfStore.appendToTwitter(g))
 
-
   printTime()
-
 
   def tidy(s:String): String = s.replace('\u00a0',' ')
 
@@ -104,3 +96,34 @@ object MyApp extends App {
   printTime("fin")
 
 }
+
+import com.hp.hpl.jena.sparql.core.DatasetGraphFactory
+import com.hp.hpl.jena.tdb.TDBFactory
+import org.w3.banana.Diesel
+import org.w3.banana.GraphStore
+import org.w3.banana.jena.{JenaRDFBlockingWriter, JenaRDFReader, Jena, JenaStore}
+import org.w3.banana.RDF
+import org.w3.banana.RDFReader
+import org.w3.banana.RDFXML
+
+import Jena._
+import JenaRDFReader._
+import org.w3.banana._
+
+
+
+
+class TwitterRdfStore[Rdf <: RDF](val jenaStore : GraphStore[Rdf])
+                                 (implicit val diesel: Diesel[Rdf], val reader: RDFReader[Rdf, RDFXML]) {
+
+  import diesel._
+  import ops._
+
+  val myGraph = uri("http://twitter.com/un_jon")
+
+  def appendToTwitter(graph: Rdf#Graph) = jenaStore.appendToNamedGraph(myGraph, graph)
+
+  def twitter:Rdf#Graph = jenaStore.getNamedGraph(myGraph)
+
+}
+

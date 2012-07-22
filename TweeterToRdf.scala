@@ -26,7 +26,9 @@ class TweeterToRdf[Rdf <: RDF](implicit diesel: Diesel[Rdf]) extends (Status => 
 
     List(user.getDescription -> twt.description,
       user.getName -> foaf.name,
-      user.getScreenName -> twt.username).flatMap(t => graphFromField(t._1, t._2).toList)
+      user.getScreenName -> twt.username,
+      user.getLocation -> twt.location
+    ).flatMap(t => graphFromField(t._1, t._2).toList)
   }
 
   def cleanApiOutput[A](in: A): Option[A] = (in match {
@@ -85,6 +87,7 @@ class TweeterToRdf[Rdf <: RDF](implicit diesel: Diesel[Rdf]) extends (Status => 
     val has_media = apply("has_media")
     val description = apply("description")
     val username = apply("username")
+    val location = apply("location")
   }
 
   object SIOCPrefix {
